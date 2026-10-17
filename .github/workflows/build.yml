@@ -1,0 +1,33 @@
+name: Build bongo.exe
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Download SFML 2.6.1
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.sfml-dev.org/files/SFML-2.6.1-windows-vc17-64-bit.zip" -OutFile sfml.zip
+          Expand-Archive sfml.zip -DestinationPath sfmlx
+          Move-Item sfmlx\SFML-2.6.1 C:\SFML
+      - name: Compile
+        shell: cmd
+        run: |
+          mkdir dist
+          cl /nologo /O2 /EHsc /std:c++17 /DNOMINMAX /D_CRT_SECURE_NO_WARNINGS /I C:\SFML\include /I include src\*.cpp /Fe:dist\bongo.exe /Fo:dist\ /link /LIBPATH:C:\SFML\lib /SUBSYSTEM:WINDOWS /ENTRY:WinMainCRTStartup sfml-graphics.lib sfml-window.lib sfml-system.lib opengl32.lib winmm.lib gdi32.lib user32.lib
+      - name: Package
+        shell: pwsh
+        run: |
+          Copy-Item C:\SFML\bin\sfml-graphics-2.dll,C:\SFML\bin\sfml-window-2.dll,C:\SFML\bin\sfml-system-2.dll dist\
+          Copy-Item img dist\img -Recurse
+          Remove-Item dist\*.obj
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bongo-cat-alternar
+          path: dist
