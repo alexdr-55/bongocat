@@ -119,8 +119,9 @@ void draw()
     HWND handle = GetForegroundWindow();
     if (handle)
     {
-        TCHAR w_title[256];
-        GetWindowText(handle, w_title, GetWindowTextLength(handle));
+        char w_title[256];
+        w_title[0] = '\0';
+        GetWindowTextA(handle, w_title, 256);
         std::string title = w_title;
         if (title.find("osu!") == 0)
         {
@@ -156,7 +157,7 @@ void draw()
         letter_x = 0;
         letter_y = 0;
     }
-    double x, y;
+    double x = 0, y = 0;
     POINT point;
     if (GetCursorPos(&point))
     {
